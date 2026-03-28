@@ -1,0 +1,32 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Testing / linting
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE (Cursor = VS Code)
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter (если вдруг)
+.ipynb_checkpoints/
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
