@@ -1,32 +1,131 @@
 import numpy as np
-from src.iterative_methods import (
-    jacobi,
-    gauss_seidel,
-    is_diagonally_dominant,
+from src.linear_system import (
+    gauss,
+    rank,
+    is_consistent,
+    is_degenerate,
+    solve_singular,
 )
+from src.utils import residual_norm
 
-def test_diagonal_dominance():
+
+def test_rank_basic():
     A = np.array([
-        [10.0, 1.0, 1.0],
-        [2.0, 10.0, 1.0],
-        [2.0, 2.0, 10.0],
-    ])
-    assert is_diagonally_dominant(A)
+        [1, 2, 3],
+        [2, 4, 6],
+        [1, 1, 1]
+    ], dtype=float)
 
-def test_jacobi_and_seidel_converge():
+    assert rank(A) == 2
+
+
+def test_rank_full_pivot():
     A = np.array([
-        [10.0, 1.0, 1.0],
-        [2.0, 10.0, 1.0],
-        [2.0, 2.0, 10.0],
-    ])
-    b = np.array([12.0, 13.0, 14.0])
+        [0, 0, 1],
+        [0, 2, 3],
+        [4, 5, 6]
+    ], dtype=float)
 
-    x_true = np.linalg.solve(A, b)
+    U1 = gauss(A, full_pivot=False)
+    U2 = gauss(A, full_pivot=True)
 
-    x_j, it_j = jacobi(A, b, eps=1e-10, max_iter=5000)
-    x_s, it_s = gauss_seidel(A, b, eps=1e-10, max_iter=5000)
+    assert rank(U1) == rank(U2) == 3
 
-    assert it_j > 0
-    assert it_s > 0
-    assert np.allclose(x_j, x_true, atol=1e-6)
-    assert np.allclose(x_s, x_true, atol=1e-6)
+
+def test_consistent_system():
+    A = np.array([
+        [1, 2],
+        [2, 4]
+    ], dtype=float)
+
+    b = np.array([3, 6], dtype=float)
+
+    assert is_consistent(A, b)
+
+
+def test_inconsistent_system():
+    A = np.array([
+        [1, 2],
+        [2, 4]
+    ], dtype=float)
+
+    b = np.array([3, 5], dtype=float)
+
+    assert not is_consistent(A, b)
+
+
+def test_is_degenerate():
+    A = np.array([
+        [1, 2],
+        [2, 4]
+    ], dtype=float)
+
+    assert is_degenerate(A)
+
+
+def test_non_degenerate():
+    A = np.array([
+        [1, 2],
+        [3, 4]
+    ], dtype=float)
+
+    assert not is_degenerate(A)
+
+
+def test_gauss_shape():
+    A = np.random.randn(5, 3)
+    U = gauss(A)
+
+    assert U.shape == A.shape
+
+
+def test_solve_singular():
+    A = np.array([
+        [1, 2, 3],
+        [2, 4, 6],
+        [1, 1, 1]
+    ], dtype=float)
+
+    b = np.array([6, 12, 3], dtype=float)
+
+    x = solve_singular(A, b)
+
+    assert is_consistent(A, b)
+    assert residual_norm(A, x, b) < 1e-8
+
+
+def test_solve_singular_full_pivot():
+    A = np.array([
+        [0, 1, 2],
+        [0, 2, 4],
+        [1, 1, 1]
+    ], dtype=float)
+
+    b = np.array([3, 6, 3], dtype=float)
+
+    x = solve_singular(A, b, full_pivot=True)
+
+    assert is_consistent(A, b)
+    assert residual_norm(A, x, b) < 1e-8
+
+
+def test_random_consistent_system():
+    np.random.seed(0)
+
+    A = np.random.randn(5, 3)
+    x_true = np.random.randn(3)
+    b = A @ x_true
+
+    assert is_consistent(A, b)
+
+    x = solve_singular(A, b)
+
+    assert residual_norm(A, x, b) < 1e-8
+
+
+def test_rank_rectangular():
+    A = np.random.randn(4, 6)
+
+    r = rank(A)
+
+    assert r <= min(A.shape)

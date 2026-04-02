@@ -1,5 +1,5 @@
 import numpy as np
-from .utils import is_zero, backward_substitution
+from .utils import is_zero, norm_2_vec, backward_substitution
 
 def qr_decomposition(A, eps=1e-12):
     # QR decomposition by the Householder reflection method.
@@ -15,9 +15,9 @@ def qr_decomposition(A, eps=1e-12):
 
     for k in range(n - 1):
         x = R[k:, k]
-        norm_x = np.linalg.norm(x)
+        norm_x = norm_2_vec(x)
 
-        if norm_x <= eps:
+        if is_zero(norm_x, eps):
             continue
 
         # v = x + sign(x1) * ||x|| * e1
@@ -25,8 +25,8 @@ def qr_decomposition(A, eps=1e-12):
         sign = 1.0 if x[0] >= 0 else -1.0
         v[0] += sign * norm_x
 
-        v_norm = np.linalg.norm(v)
-        if v_norm <= eps:
+        v_norm = norm_2_vec(v) 
+        if is_zero(v_norm, eps):
             continue
 
         v = v / v_norm
@@ -43,6 +43,7 @@ def qr_decomposition(A, eps=1e-12):
         # Q = H1 H2 ... Hk
         Q = Q @ H
 
+    # Creates a mask (True/False table) where True is set and assigns the value 0.0 to these elements.
     R[np.abs(R) < eps] = 0.0
     return Q, R
 
@@ -57,11 +58,11 @@ def qr_solve(A, b, eps=1e-12):
         raise ValueError("QR solve is implemented for square matrices only.")
 
     Q, R = qr_decomposition(A, eps=eps)
-    if np.any(is_zero(np.abs(np.diag(R)))):
+    if np.any(np.abs(np.diag(R)) <= eps):
         raise np.linalg.LinAlgError("Matrix is singular or nearly singular.")
 
     y = Q.T @ b
-    x = backward_substitution(R, y, eps=eps)
+    x = backward_substitution(R, y)
     return x
 
 def check_qr_decomposition(A, eps=1e-10):

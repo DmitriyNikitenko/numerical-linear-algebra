@@ -84,11 +84,11 @@ def is_degenerate(A):
 
 
 def solve_singular(A, b, full_pivot=False, eps=1e-12):
-    # Finds one particular solution of the joint degenerate system Ax = b.
+    # Reduce the system to stepwise form
     U, Y, colsindex = gauss(A, b, full_pivot=full_pivot, return_perm=True, eps=eps)
     n, m = U.shape
 
-    # Compatibility check already in step form
+    # Check consistency
     for i in range(n):
         if np.all(np.abs(U[i]) <= eps) and not is_zero(Y[i], eps):
             raise np.linalg.LinAlgError("System is inconsistent.")
@@ -98,12 +98,15 @@ def solve_singular(A, b, full_pivot=False, eps=1e-12):
     pivot_rows = []
     pivot_cols = []
 
+    # Find supporting elements
     for i in range(n):
         nz = np.where(np.abs(U[i]) > eps)[0]
         if nz.size > 0:
             pivot_rows.append(i)
             pivot_cols.append(int(nz[0]))
 
+    # Set free variables to zero
+    # Reverse substitution
     for idx in range(len(pivot_rows) - 1, -1, -1):
         i = pivot_rows[idx]
         j = pivot_cols[idx]
@@ -111,6 +114,8 @@ def solve_singular(A, b, full_pivot=False, eps=1e-12):
         s = np.dot(U[i, j + 1:], x_perm[j + 1:])
         x_perm[j] = (Y[i] - s) / U[i, j]
 
+    # Restore order
     x = np.zeros(m, dtype=float)
-    x[colsindex] = x_perm
+    for j in range(m):
+      x[colsindex[j]] = x_perm[j]
     return x

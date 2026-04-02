@@ -92,9 +92,12 @@ def jacobi(A, b, x0=None, eps=1e-10, max_iter=1000, return_history=False):
 
     history = []
 
+    q = norm_inf_matrix(jacobi_iteration_matrix(A, eps=1e-10))
     for it in range(1, max_iter + 1):
         x_new = _jacobi_step(A, b, x, eps=eps)
         diff = norm_inf_vec(x_new - x)
+        if q < 1:
+            diff = diff * (q/(1-q))
         history.append(diff)
 
         if diff < eps:
@@ -124,9 +127,12 @@ def gauss_seidel(A, b, x0=None, eps=1e-10, max_iter=1000, return_history=False):
 
     history = []
 
+    q = norm_inf_matrix(gauss_seidel_iteration_matrix(A, eps=1e-10))
     for it in range(1, max_iter + 1):
         x_new = _seidel_step(A, b, x, eps=eps)
         diff = norm_inf_vec(x_new - x)
+        if q < 1:
+            diff = diff * (q/(1-q))
         history.append(diff)
 
         if diff < eps:
@@ -171,13 +177,7 @@ def gauss_seidel_iteration_matrix(A, eps=1e-12):
     L = np.tril(A, -1)
     U = np.triu(A, 1)
 
-    DL = D + L
-    B = np.zeros((n, n), dtype=float)
-
-    for j in range(n):
-        B[:, j] = -forward_substitution(DL, U[:, j], eps=eps)
-
-    return B
+    return -np.linalg.inv(D + L) @ U
 
 
 def apriori_iterations(A, b, x0=None, eps=1e-10, method="jacobi", tol=1e-12):
