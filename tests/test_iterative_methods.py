@@ -98,12 +98,12 @@ def test_apriori_and_aposteriori_estimates():
     q = norm_inf_matrix(B)
 
     # Restore two adjacent iterations to check the posterior estimate
-    x_prev = x0.copy()
-    x_curr = _jacobi_step(A, b, x_prev)
+    x_prev = x0.copy()  # x_0
+    x_curr = _jacobi_step(A, b, x_prev)  # x_1
 
     if it > 1:
         for _ in range(1, it):
-            x_prev, x_curr = x_curr, _jacobi_step(A, b, x_curr)
+            x_prev, x_curr = x_curr, _jacobi_step(A, b, x_curr)  # x_{k+1}
 
     bound = a_posteriori_bound(x_prev, x_curr, q)
 
