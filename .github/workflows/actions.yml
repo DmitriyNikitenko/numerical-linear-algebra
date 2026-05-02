@@ -30,3 +30,9 @@ jobs:
 
       - name: Test Linear Systems
         run: PYTHONPATH=. pytest tests/test_linear_system.py -v
+
+      - name: Test nonlinear equations
+        run: PYTHONPATH=. pytest tests/test_nonlinear.py -v
+
+      - name: Test Integrals
+        run: PYTHONPATH=. pytest tests/test_integrals.py -v
