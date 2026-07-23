@@ -4,7 +4,7 @@ from .lu import lu_solve
 from .utils import norm_inf_vec
 
 
-def newton_system(F, J, x0, eps=1e-10, max_iter=100, mode="full", m=1, k=np.inf):
+def newton_system(F, J, x0, eps=1e-10, max_iter=1000, mode="full", m=1, k=np.inf):
     """
     mode:
         "full"       - classical Newton
@@ -12,37 +12,28 @@ def newton_system(F, J, x0, eps=1e-10, max_iter=100, mode="full", m=1, k=np.inf)
         "hybrid"     - first k full steps, then reuse Jacobian every m steps
     """
 
-    x = np.asarray(x0, dtype=float).copy()
-
     t0 = time.perf_counter()
 
+    x = np.asarray(x0, dtype=float).copy()
     jacobian_recomputations = 0
     iterations = 0
-
     J_current = None
 
     for it in range(max_iter):
         Fx = F(x)
-
-        if norm_inf_vec(Fx) < eps:
-            break
-
         recompute = False
 
         if mode == "full":
             recompute = True
-
         elif mode == "modified":
             if it == 0:
                 recompute = True
-
         elif mode == "hybrid":
             if it < k:
                 recompute = True
             else:
-                if (it - k) % m == 0:
+                if (it - k + 1) % m == 0:
                     recompute = True
-
         else:
             raise ValueError("Unknown mode")
 
@@ -55,7 +46,7 @@ def newton_system(F, J, x0, eps=1e-10, max_iter=100, mode="full", m=1, k=np.inf)
         x = x + delta
         iterations += 1
 
-        if norm_inf_vec(delta) < eps:
+        if norm_inf_vec(delta) < eps and norm_inf_vec(Fx) < eps:
             break
 
     t1 = time.perf_counter()
