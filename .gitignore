@@ -13,7 +13,7 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
-# IDE (Cursor = VS Code)
+# IDE (VS Code)
 .vscode/
 
 # OS
