@@ -2,7 +2,7 @@ import numpy as np
 
 
 # -----------------------------------------------------------------------------
-# Таблицы Бутчера для методов из пособия:
+# Butcher tableaus:
 # 26 — midpoint
 # 27 — Heun (explicit trapezoid)
 # 28 — third-order Heun
@@ -11,7 +11,7 @@ import numpy as np
 # 31 — RK4 3/8-rule
 # -----------------------------------------------------------------------------
 """
-Для каждого метода заданы матрица A (коэффициенты стадий), векторы b (веса) и c (узлы), а также порядок точности.
+For each method, the matrix A (stage coefficients), vectors b (weights) and c (nodes), and the order of accuracy are specified.
 """
 _METHODS = {
     "midpoint": {
@@ -65,11 +65,11 @@ _METHODS = {
 }
 
 """
-Функции rk_step, solve_ivp_fixed и solve_ivp_adaptive принимают аргумент method,
- который может быть любым из этих ключей, и автоматически используют соответствующие коэффициенты
+The functions rk_step, solve_ivp_fixed, and solve_ivp_adaptive take the 'method' argument,
+ which can be any of these keys, and automatically use the corresponding coefficients
 """
 
-# Словарь для удобного обращения по номерам (26–31) или коротким именам
+# Dictionary for convenient access by numbers (26-31) or short names
 _ALIASES = {
     "26": "midpoint",
     "27": "heun",
@@ -92,117 +92,117 @@ _ALIASES = {
 }
 
 def _method_data(method):
-    key = str(method).strip().lower()  # Приводим к строке, убираем пробелы, переводим в нижний регистр
-    key = _ALIASES.get(key, key)  # Если key есть в словаре псевдонимов, берём имя метода, иначе оставляем как есть
+    key = str(method).strip().lower()  # Convert to string, strip spaces, convert to lowercase
+    key = _ALIASES.get(key, key)  # If key is in the aliases dictionary, use the method name, otherwise leave it as is
     if key not in _METHODS:
         raise ValueError(
             "Unknown method. Use 26-31 or one of: midpoint, heun, rk3_heun, rk3_simpson, rk4_classic, rk4_38."
         )
-    return key, _METHODS[key] # Возвращаем имя метода и его данные (матрицы A, b, c и порядок)
+    return key, _METHODS[key] # Return the method name and its data (matrices A, b, c, and order)
 
-# Приводит начальное условие y0 к единому формату (одномерному массиву float)
+# Converts the initial condition y0 to a uniform format (1D float array)
 def _as_state(y):
     arr = np.asarray(y, dtype=float)
-    if arr.ndim == 0: # скаляр преобразуется в массив с одним элементом
-        return arr.reshape(1), True # возвращает массив и флаг, указывающий, является ли y0 скаляром
-    return arr.reshape(-1), False  # вектор или матрица преобразуется в одномерный массив
+    if arr.ndim == 0: # scalar is converted to a single-element array
+        return arr.reshape(1), True # returns the array and a flag indicating whether y0 is a scalar
+    return arr.reshape(-1), False  # vector or matrix is converted to a 1D array
 
-# Восстанавливает исходный формат y0
+# Restores the original format of y0
 def _restore_state(y, scalar):
     y = np.asarray(y, dtype=float)
     return float(y[0]) if scalar else y
 
-# Обёртка вокруг функции правой части
+# Wrapper around the right-hand side function
 def _call_f(f, x, y):
     arg = float(y[0]) if y.size == 1 else y
-    out = np.asarray(f(float(x), arg), dtype=float) # Вызываем f, результат – массив float
+    out = np.asarray(f(float(x), arg), dtype=float) # Call f, the result is a float array
 
-    if out.ndim == 0: # Если скаляр
-        out = out.reshape(1) # Превращаем в массив из одного элемента
+    if out.ndim == 0: # If scalar
+        out = out.reshape(1) # Convert to a single-element array
     else:
-        out = out.reshape(-1) # Принудительно делаем его одномерным
+        out = out.reshape(-1) # Force it to be 1D
 
-    if out.size == 1 and y.size > 1: # Если f вернула скаляр, а система векторная
-        out = np.full(y.shape, float(out[0]), dtype=float) # Размножаем скаляр на все компоненты
+    if out.size == 1 and y.size > 1: # If f returned a scalar but the system is vector-based
+        out = np.full(y.shape, float(out[0]), dtype=float) # Broadcast the scalar to all components
 
-    return out  # Возвращаем корректный одномерный массив
+    return out  # Return a correct 1D array
 
-# Вычисляет бесконечную норму вектора
+# Calculates the infinity norm of a vector
 def _norm_inf(v):
-    v = np.asarray(v, dtype=float).reshape(-1) # Приводим входные данные к одномерному массиву float
-    return float(np.max(np.abs(v))) if v.size else 0.0 # Если массив не пуст – макс. модуль, иначе 0.0
+    v = np.asarray(v, dtype=float).reshape(-1) # Convert input data to a 1D float array
+    return float(np.max(np.abs(v))) if v.size else 0.0 # If the array is not empty - max absolute value, else 0.0
 
-# Функция rk_step выполняет один шаг численного интегрирования ОДУ
+# The rk_step function performs one step of numerical integration of ODEs
 def rk_step(f, x, y, h, method="rk4_classic"):
     """
     k_i = f( x + c_i·h ,  y + h·Σ_{j=1}^{i-1} a_{ij}·k_j ),   i = 1..s
     y_next = y + h·Σ_{i=1}^{s} b_i·k_i
     """
 
-    _, tab = _method_data(method) # Получаем таблицу Бутчера (A, b, c, order)
-    y_vec, scalar = _as_state(y)  # Приводим y к 1D массиву и запоминаем, был ли скаляром
+    _, tab = _method_data(method) # Get the Butcher tableau (A, b, c, order)
+    y_vec, scalar = _as_state(y)  # Convert y to a 1D array and remember if it was a scalar
 
-    s = len(tab["b"]) # Количество стадий
-    k = np.zeros((s, y_vec.size), dtype=float) # Массив для хранения векторов k_i
+    s = len(tab["b"]) # Number of stages
+    k = np.zeros((s, y_vec.size), dtype=float) # Array to store vectors k_i
 
-    for i in range(s): # Цикл по стадиям
-        stage = y_vec.copy() # Начинаем с текущего значения y
+    for i in range(s): # Loop over stages
+        stage = y_vec.copy() # Start with the current value of y
         if i:
-            # Вычисляем h * Σ(A[i][j] * k_j)
-            stage += h * np.sum(tab["A"][i, :i, None] * k[:i], axis=0)  # Для i>0 добавляем вклад предыдущих стадий
-        # Вычисляем k_i = f(x + c_i*h, stage)
+            # Calculate h * Σ(A[i][j] * k_j)
+            stage += h * np.sum(tab["A"][i, :i, None] * k[:i], axis=0)  # For i>0, add the contribution of previous stages
+        # Calculate k_i = f(x + c_i*h, stage)
         k[i] = _call_f(f, x + tab["c"][i] * h, stage)
 
-    # Формируем новое значение: y_next = y + h * Σ(b_i * k_i)
+    # Compute the new value: y_next = y + h * Σ(b_i * k_i)
     y_next = y_vec + h * np.sum(tab["b"][:, None] * k, axis=0)
-    return _restore_state(y_next, scalar) # Возвращаем в исходной форме
+    return _restore_state(y_next, scalar) # Return in the original form
 
-# Интегрирование ОДУ на равномерной сетке фиксированным методом Рунге-Кутты
-# последовательно применяет rk_step n_steps раз
+# ODE integration on a uniform grid using a fixed-step Runge-Kutta method
+# sequentially applies rk_step n_steps times
 def solve_ivp_fixed(f, x0, xf, y0, n_steps, method="rk4_classic"):
-    # Проверки корректности входных данных
+    # Input data validation
     if n_steps < 1:
         raise ValueError("n_steps must be >= 1.")
     if xf <= x0:
         raise ValueError("Require xf > x0.")
 
-    name, tab = _method_data(method) # Получаем таблицу Бутчера и имя метода
-    y, scalar = _as_state(y0) # Приводим y0 к 1D массиву, запоминаем флаг скаляра
+    name, tab = _method_data(method) # Get the Butcher tableau and method name
+    y, scalar = _as_state(y0) # Convert y0 to a 1D array, remember the scalar flag
 
-    x = float(x0) # Текущее значение x
-    h = (float(xf) - float(x0)) / n_steps # Постоянный шаг сетки
+    x = float(x0) # Current value of x
+    h = (float(xf) - float(x0)) / n_steps # Constant grid step size
 
-    xs = [x] # Список для сохранения узлов x
-    ys = [y.copy()] # Список для сохранения решений y
-    rhs_calls = 0 # Счётчик вызовов правой части f
+    xs = [x] # List to store x nodes
+    ys = [y.copy()] # List to store y solutions
+    rhs_calls = 0 # Counter for right-hand side f calls
 
-    for _ in range(n_steps): # Цикл по шагам интегрирования
-        s = len(tab["b"]) # Количество стадий
-        k = np.zeros((s, y.size), dtype=float) # Массив для хранения стадий k_i
+    for _ in range(n_steps): # Loop over integration steps
+        s = len(tab["b"]) # Number of stages
+        k = np.zeros((s, y.size), dtype=float) # Array to store stages k_i
 
-        # Вычисление всех стадий (как в rk_step)
+        # Calculation of all stages (as in rk_step)
         for i in range(s):
-            stage = y.copy() # Начальное приближение стадии
+            stage = y.copy() # Initial stage approximation
             if i:
-                # Добавляем вклад предыдущих стадий: h * Σ(A[i][j] * k_j)
+                # Add the contribution of previous stages: h * Σ(A[i][j] * k_j)
                 stage += h * np.sum(tab["A"][i, :i, None] * k[:i], axis=0)
-            k[i] = _call_f(f, x + tab["c"][i] * h, stage)  # Вычисляем k_i
+            k[i] = _call_f(f, x + tab["c"][i] * h, stage)  # Calculate k_i
 
-        rhs_calls += s # Учитываем все вызовы f на этом шаге
+        rhs_calls += s # Account for all f calls in this step
         # y_{next} = y + h * Σ(b_i * k_i)
         y = y + h * np.sum(tab["b"][:, None] * k, axis=0)
-        x += h # Переходим к следующему узлу
+        x += h # Move to the next node
 
-        xs.append(x) # Сохраняем x
-        ys.append(y.copy()) # Сохраняем y
+        xs.append(x) # Store x
+        ys.append(y.copy()) # Store y
 
-    # Преобразуем историю в массивы numpy
+    # Convert history to numpy arrays
     x_hist = np.asarray(xs, dtype=float)
     y_hist = np.asarray(ys, dtype=float)
-    if scalar: # Если исходная задача была скалярной
-        y_hist = y_hist[:, 0] # Извлекаем единственный столбец
+    if scalar: # If the original problem was scalar
+        y_hist = y_hist[:, 0] # Extract the single column
 
-    # Возвращаем словарь с результатами
+    # Return a dictionary with results
     return {
         "x": x_hist,
         "y": y_hist,
@@ -212,35 +212,35 @@ def solve_ivp_fixed(f, x0, xf, y0, n_steps, method="rk4_classic"):
         "rhs_calls": rhs_calls,
     }
 
-# Оценка начального шага для адаптивного интегрирования
+# Estimation of the initial step size for adaptive integration
 def estimate_initial_step(f, x0, xf, y0, method="rk4_classic", tol=1e-6, max_step=None):
-    _, tab = _method_data(method) # Получаем данные метода
-    y_vec, _ = _as_state(y0) # Приводим y0 к 1D массиву
-    f0 = _call_f(f, float(x0), y_vec) # Вычисляем f(x0, y0) – производную в начальной точке
+    _, tab = _method_data(method) # Get method data
+    y_vec, _ = _as_state(y0) # Convert y0 to a 1D array
+    f0 = _call_f(f, float(x0), y_vec) # Calculate f(x0, y0) - the derivative at the initial point
 
-    interval = abs(float(xf) - float(x0)) # Длина интервала интегрирования
+    interval = abs(float(xf) - float(x0)) # Integration interval length
     if interval == 0:
         raise ValueError("xf must differ from x0.")
 
-    # Масштаб производной (не даём стать нулём, чтобы избежать деления на ноль)
-    scale = max(_norm_inf(f0), 1e-14) # Бесконечная норма f0, но не менее 1e-14
+    # Derivative scale (prevent it from becoming zero to avoid division by zero)
+    scale = max(_norm_inf(f0), 1e-14) # Infinity norm of f0, but not less than 1e-14
 
-    # Основная формула: h = (tol / scale)^{1/(p+1)}
+    # Main formula: h = (tol / scale)^{1/(p+1)}
     h = (tol / scale) ** (1.0 / (tab["order"] + 1))
 
-    # Если получилось нечисловое или неположительное значение – берём запасной шаг
+    # If the result is non-numeric or non-positive - use a fallback step size
     if not np.isfinite(h) or h <= 0:
         h = interval / 100.0
 
-    # Ограничиваем сверху, если задан max_step
+    # Bound from above if max_step is specified
     if max_step is not None:
         h = min(h, float(max_step))
 
-    # Шаг не может быть больше длины всего интервала
+    # The step size cannot be greater than the entire interval length
     return min(h, interval)
 
-# Адаптивное интегрирование ОДУ с контролем шага методом удвоения
-# интегрирование с автоматическим выбором шага, чтобы локальная ошибка на каждом шаге не превышала заданных допусков rtol (относительный) и atol (абсолютный).
+# Adaptive ODE integration with step size control using step doubling
+# Integration with automatic step size selection so that the local error at each step does not exceed the specified tolerances rtol (relative) and atol (absolute).
 def solve_ivp_adaptive(
     f,
     x0,
@@ -255,26 +255,26 @@ def solve_ivp_adaptive(
     safety=0.9,
     max_steps=100000,
 ):
-    #   rtol - относительный допуск локальной ошибки (>0)
-    #   atol - абсолютный допуск локальной ошибки (>=0)
-    #   h0 - начальный шаг
-    #   h_min - минимально допустимый шаг
-    #   h_max - максимально допустимый шаг (None - интервал)
-    # safety - коэффициент запаса (0< safety <1), уменьшает шаг для снижения числа отвержений
+    #   rtol - relative local error tolerance (>0)
+    #   atol - absolute local error tolerance (>=0)
+    #   h0 - initial step size
+    #   h_min - minimum allowed step size
+    #   h_max - maximum allowed step size (None means the entire interval)
+    # safety - safety factor (0 < safety < 1), reduces the step to decrease the number of rejections
 
 
-    # Проверки корректности входных данных
+    # Input data validation
     if xf <= x0:
         raise ValueError("Require xf > x0.")
     if rtol <= 0 or atol < 0:
         raise ValueError("rtol must be > 0 and atol must be >= 0.")
 
-    name, tab = _method_data(method) # Данные метода
-    y, scalar = _as_state(y0) # y – 1D массив, scalar – флаг
+    name, tab = _method_data(method) # Method data
+    y, scalar = _as_state(y0) # y - 1D array, scalar - flag
     x = float(x0)
     interval = float(xf - x0)
 
-    # Начальный шаг либо переданный, либо оценённый
+    # Initial step size, either passed or estimated
     if h0 is None:
         h = estimate_initial_step(f, x0, xf, y0, method=name, tol=max(rtol, atol), max_step=interval)
     else:
@@ -283,51 +283,51 @@ def solve_ivp_adaptive(
     if h_max is None:
         h_max = interval
 
-    h = min(max(h, h_min), h_max, interval) # Принудительные ограничения
+    h = min(max(h, h_min), h_max, interval) # Enforced limits
 
-    # История решения
+    # Solution history
     xs = [x]
     ys = [y.copy()]
-    accepted_steps = [] # Храним все принятые шаги
-    rejected_steps = [] # Храним все отвергнутые шаги
-    rhs_calls = 0 # Количество вызванных f
-    n_accept = 0 # Количество принятых шагов
-    n_reject = 0 # Количество отвергнутых шагов
+    accepted_steps = [] # Store all accepted steps
+    rejected_steps = [] # Store all rejected steps
+    rhs_calls = 0 # Number of f calls
+    n_accept = 0 # Number of accepted steps
+    n_reject = 0 # Number of rejected steps
 
-    p = tab["order"] # Порядок точности метода
-    corr = 2**p - 1 # Поправочный коэффициент для экстраполяции Ричардсона
+    p = tab["order"] # Method's order of accuracy
+    corr = 2**p - 1 # Correction factor for Richardson extrapolation
 
-    # Основной цикл адаптивного интегрирования
+    # Main loop for adaptive integration
     while x < xf and (n_accept + n_reject) < max_steps:
-        h = min(h, xf - x) # Не перескакиваем конечную точку
+        h = min(h, xf - x) # Do not overshoot the final point
         if h < h_min:
             raise RuntimeError("Step size underflow.")
 
-        # Вычисляем два приближения:
-        # y_full – один большой шаг h
-        # y_two_half – два маленьких шага h/2
+        # Calculate two approximations:
+        # y_full - one large step h
+        # y_two_half - two small steps h/2
         y_full = np.asarray(rk_step(f, x, y, h, method=name), dtype=float).reshape(-1)
         y_half = np.asarray(rk_step(f, x, y, h / 2.0, method=name), dtype=float).reshape(-1)
         y_two_half = np.asarray(rk_step(f, x + h / 2.0, y_half, h / 2.0, method=name), dtype=float).reshape(-1)
-        rhs_calls += 3 * len(tab["b"]) # 3 набора стадий (один шаг h и два по h/2)
+        rhs_calls += 3 * len(tab["b"]) # 3 sets of stages (one step h and two h/2 steps)
 
-        # Оценка локальной ошибки
-        diff = y_two_half - y_full # Разность между двумя способами
-        scale = atol + rtol * np.maximum(np.abs(y_full), np.abs(y_two_half)) # Масштаб для нормировки
-        err = _norm_inf(diff / scale) # Относительная ошибка (в бесконечной норме)
-        accepted = err <= 1.0 # Принят ли шаг
+        # Local error estimation
+        diff = y_two_half - y_full # Difference between the two approaches
+        scale = atol + rtol * np.maximum(np.abs(y_full), np.abs(y_two_half)) # Scale for normalization
+        err = _norm_inf(diff / scale) # Relative error (in infinity norm)
+        accepted = err <= 1.0 # Is the step accepted
 
-        # Вычисляем коэффициент изменения шага (стандартная формула для метода удвоения)
+        # Calculate the step size modification factor (standard formula for step doubling)
         if err == 0.0:
             factor = 2.0
         else:
             factor = safety * err ** (-1.0 / (p + 1))
-        factor = float(np.clip(factor, 0.2, 5.0)) # Ограничиваем, чтобы шаг не менялся слишком резко
+        factor = float(np.clip(factor, 0.2, 5.0)) # Constrain so the step size does not change too abruptly
 
         if accepted:
-            # Уточняем решение по Ричардсону (экстраполяция)
+            # Refine the solution using Richardson extrapolation
             """
-            Экстраполяция Ричардсона — это метод повышения точности численного результата путём комбинирования двух приближений, полученных с разными шагами.
+            Richardson extrapolation is a method of increasing the accuracy of a numerical result by combining two approximations obtained with different step sizes.
             """
             y = y_two_half + diff / corr
             x += h
@@ -335,23 +335,23 @@ def solve_ivp_adaptive(
             ys.append(y.copy())
             accepted_steps.append(h)
             n_accept += 1
-            h = min(h * factor, h_max) # Увеличиваем шаг для следующей итерации
+            h = min(h * factor, h_max) # Increase the step size for the next iteration
         else:
             rejected_steps.append(h)
             n_reject += 1
-            # Уменьшаем шаг, но не более чем до h_min
+            # Decrease the step size, but not below h_min
             h = max(h * max(0.2, min(0.8, factor)), h_min)
 
     if x < xf:
         raise RuntimeError("Maximum number of steps exceeded before reaching xf.")
 
-    # Преобразуем историю в массивы numpy
+    # Convert history to numpy arrays
     x_hist = np.asarray(xs, dtype=float)
     y_hist = np.asarray(ys, dtype=float)
     if scalar:
         y_hist = y_hist[:, 0]
 
-    # Возвращаем подробный словарь результатов
+    # Return a detailed results dictionary
     return {
         "x": x_hist,
         "y": y_hist,
