@@ -2,10 +2,10 @@ import time
 from typing import Callable, Dict, List, Optional
 import numpy as np
 
+
 _GAUSS3_NODES = np.array([-np.sqrt(3.0 / 5.0), 0.0, np.sqrt(3.0 / 5.0)], dtype=float)
 _GAUSS3_WEIGHTS = np.array([5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0], dtype=float)
 _WEIGHT_TRANSFORM_POWER = 16
-
 
 def _validate_inputs(a: float, b: float, N0: int, eps: float, method: str) -> None:
     if b <= a:
@@ -16,7 +16,6 @@ def _validate_inputs(a: float, b: float, N0: int, eps: float, method: str) -> No
         raise ValueError("eps must be > 0.")
     if method not in {"midpoint", "trapezoid", "simpson", "gauss"}:
         raise ValueError("Unknown method. Use 'midpoint', 'trapezoid', 'simpson', or 'gauss'.")
-
 
 def _validate_weighted_inputs(a: float, b: float, alpha: float, beta: float, N0: int, eps: float, method: str) -> None:
     """Validate arguments for the weighted integral."""
@@ -33,7 +32,6 @@ def _validate_weighted_inputs(a: float, b: float, alpha: float, beta: float, N0:
     if method not in {"midpoint", "trapezoid", "simpson", "gauss"}:
         raise ValueError("Unknown method. Use 'midpoint', 'trapezoid', 'simpson', or 'gauss'.")
 
-
 def _evaluate_function(f: Callable, x):
     x_arr = np.asarray(x, dtype=float)
     y = np.asarray(f(x_arr), dtype=float)
@@ -45,7 +43,6 @@ def _evaluate_function(f: Callable, x):
         y = np.broadcast_to(y, x_arr.shape).astype(float, copy=False)
 
     return y
-
 
 def _estimate_order_from_three(S_h2: float, S_h1: float, S_h: float) -> Optional[float]:
     num = S_h2 - S_h1
@@ -65,13 +62,11 @@ def _midpoint_composite(f: Callable, a: float, b: float, N: int) -> float:
     x = a + (np.arange(N, dtype=float) + 0.5) * h
     return float(h * np.sum(_evaluate_function(f, x)))
 
-
 def _trapezoid_composite(f: Callable, a: float, b: float, N: int) -> float:
     h = (b - a) / N
     x = np.linspace(a, b, N + 1)
     y = _evaluate_function(f, x)
     return float(h * (0.5 * y[0] + np.sum(y[1:-1]) + 0.5 * y[-1]))
-
 
 def _simpson_composite(f: Callable, a: float, b: float, N: int) -> float:
     if N % 2 == 1:
@@ -82,7 +77,6 @@ def _simpson_composite(f: Callable, a: float, b: float, N: int) -> float:
     y = _evaluate_function(f, x)
 
     return float((h / 3.0) * (y[0] + y[-1] + 4.0 * np.sum(y[1:-1:2]) + 2.0 * np.sum(y[2:-1:2])))
-
 
 def _gauss3_composite(f: Callable, a: float, b: float, N: int) -> float:
     h = (b - a) / N
@@ -100,7 +94,6 @@ def _gauss3_composite(f: Callable, a: float, b: float, N: int) -> float:
 
     return float(total)
 
-
 def _eval_rule(f: Callable, a: float, b: float, N: int, method: str) -> float:
     if method == "midpoint":
         return _midpoint_composite(f, a, b, N)
@@ -111,7 +104,6 @@ def _eval_rule(f: Callable, a: float, b: float, N: int, method: str) -> float:
     if method == "gauss":
         return _gauss3_composite(f, a, b, N)
     raise ValueError("Unknown method.")
-
 
 def _integrate_core(
     f: Callable,
@@ -268,7 +260,6 @@ def _weighted_transform(f: Callable, a: float, b: float, alpha: float, beta: flo
 
     return g
 
-
 # Public
 def integrate(
     f: Callable,
@@ -291,7 +282,6 @@ def integrate(
         return _integrate_core(g, 0.0, 1.0, method, N0, eps, max_iter, exact)
 
     return _integrate_core(f, a, b, method, N0, eps, max_iter, exact)
-
 
 def integrate_weighted(
     f: Callable,

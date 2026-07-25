@@ -3,7 +3,6 @@ from .utils import (
     norm_inf_vec,
     norm_inf_matrix,
     is_zero,
-    forward_substitution,
 )
 
 

@@ -8,6 +8,7 @@ from .utils import (
     norm_inf_matrix
 )
 
+
 def lu_decomposition(A, full_pivot = True):
     U = A.copy().astype(float)
     n = U.shape[0]

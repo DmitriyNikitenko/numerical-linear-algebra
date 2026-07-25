@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def is_zero(x, eps=1e-10):
     return abs(x) < eps
 
@@ -60,9 +61,9 @@ def random_vector(n, scale = 1.0):
     return np.random.randn(n)
 
 def diagonal_dominant(n):
-    A = np.random.randn(n, n)
+    A = np.random.rand(n, n)
     for i in range(n):
-        A[i, i] += n
+        A[i,i] += np.sum(np.abs(A[i,:]))
     return A
 
 def residual(A, x, b):

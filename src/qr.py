@@ -1,9 +1,9 @@
 import numpy as np
 from .utils import is_zero, norm_2_vec, backward_substitution
 
+
 def qr_decomposition(A, eps=1e-12):
     # QR decomposition by the Householder reflection method.
-    # Returns Q, R such that A = Q R.
     A = np.asarray(A, dtype=float)
     n, m = A.shape
 
@@ -31,12 +31,13 @@ def qr_decomposition(A, eps=1e-12):
 
         v = v / v_norm
 
+        # H = I - 2vv^T
         H_small = np.eye(n - k, dtype=float) - 2.0 * np.outer(v, v)
 
         # Apply reflection to R
         R[k:, k:] = H_small @ R[k:, k:]
 
-        # Expand the reflection to size n x n
+        # Expand the reflection to size n x n: H = I * H_small
         H = np.eye(n, dtype=float)
         H[k:, k:] = H_small
 

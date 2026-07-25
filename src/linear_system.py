@@ -59,7 +59,6 @@ def gauss(A, b=None, full_pivot=False, return_perm=False, eps=1e-12):
 
     return (U, b) if b is not None else U
 
-
 def rank(A):
     U = gauss(A)
     n, m = U.shape
@@ -81,7 +80,6 @@ def is_consistent(A,b):
 
 def is_degenerate(A):
     return rank(A) < min(A.shape)
-
 
 def solve_singular(A, b, full_pivot=False, eps=1e-12):
     # Reduce the system to stepwise form
