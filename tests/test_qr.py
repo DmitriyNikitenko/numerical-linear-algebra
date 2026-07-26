@@ -16,7 +16,6 @@ def test_qr_decomposition():
     assert norm_inf_matrix(Q @ R - A) < 1e-8
     assert norm_inf_matrix(Q.T @ Q - I) < 1e-8
 
-
 def test_qr_solve():
     A = np.array([
         [2.0, 1.0, 1.0],

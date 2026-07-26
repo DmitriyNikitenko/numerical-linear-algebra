@@ -7,7 +7,7 @@ from src.iterative_methods import (
     a_posteriori_bound,
     jacobi_iteration_matrix,
 )
-from src.utils import residual_norm, norm_inf_matrix, norm_inf_vec
+from src.utils import residual_norm, norm_inf_matrix, norm_inf_vec, diagonal_dominant
 
 
 def _jacobi_step(A, b, x):
@@ -27,7 +27,6 @@ def _jacobi_step(A, b, x):
 
     return x_new
 
-
 def test_diagonal_dominance():
     A = np.array([
         [10.0, 1.0, 1.0],
@@ -35,7 +34,6 @@ def test_diagonal_dominance():
         [2.0, 2.0, 10.0],
     ])
     assert is_diagonally_dominant(A)
-
 
 def test_compare_dd_and_spd_without_diagonal_dominance():
     # Comparison on a matrix with diagonal dominance
@@ -77,15 +75,10 @@ def test_compare_dd_and_spd_without_diagonal_dominance():
     assert residual_norm(A_spd, x_s_spd, b_spd) < 1e-8
     assert norm_inf_vec(x_s_spd - x_true_spd) < 1e-6
 
-
 def test_apriori_and_aposteriori_estimates():
-    A = np.array([
-        [10.0, 1.0, 1.0],
-        [1.0, 10.0, 1.0],
-        [1.0, 1.0, 10.0],
-    ])
-    b = np.array([12.0, 13.0, 14.0])
-    x0 = np.zeros(3)
+    A = diagonal_dominant(5)
+    b = np.random.rand(5)
+    x0 = np.zeros(5)
 
     x, it = jacobi(A, b, x0=x0, eps=1e-10, max_iter=5000)
     x_true = np.linalg.solve(A, b)
@@ -107,6 +100,7 @@ def test_apriori_and_aposteriori_estimates():
 
     bound = a_posteriori_bound(x_prev, x_curr, q)
 
+    print(k_apr, it)
     assert residual_norm(A, x, b) < 1e-8
     assert norm_inf_vec(x - x_true) < 1e-6
     assert it <= k_apr or np.isinf(k_apr)

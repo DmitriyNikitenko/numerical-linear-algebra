@@ -9,12 +9,10 @@ def F1(x):
         x[0] - np.sin(x[0]) - 0.25
     ])
 
-
 def J1(x):
     return np.array([
         [1 - np.cos(x[0])]
     ])
-
 
 def test_scalar_equation():
     x0 = np.array([1.0])
@@ -23,7 +21,6 @@ def test_scalar_equation():
     x = res["x"]
     assert abs(F1(x)[0]) < 1e-6
 
-
 # Small nonlinear system
 def F2(x):
     return np.array([
@@ -31,20 +28,17 @@ def F2(x):
         2 * x[0] + np.cos(x[1]) - 2
     ])
 
-
 def J2(x):
     return np.array([
         [np.cos(x[0] + 1), -1],
         [2, -np.sin(x[1])]
     ])
 
-
 def test_system_solution():
     x0 = np.array([0.5, 0.5])
     res = newton_system(F2, J2, x0)
 
     assert norm_inf_vec(F2(res["x"])) < 1e-6
-
 
 def test_modes_consistency_system():
     x0 = np.array([0.5, 0.5])
@@ -53,7 +47,6 @@ def test_modes_consistency_system():
     res_mod = newton_system(F2, J2, x0, mode="modified")
 
     assert norm_inf_vec(res_full["x"] - res_mod["x"]) < 1e-6
-
 
 # Large 10x10 nonlinear system
 def F(x):
@@ -71,7 +64,6 @@ def F(x):
         7 / x6 + np.exp(x5 + x4) - 2 * x2 * x8 * x10 * x7 + 3 * x9 - 3 * x1 - 8.4394734508383257499,
         x10 * x1 + x9 * x2 - x8 * x3 + np.sin(x4 + x5 + x6) * x7 - 0.78238095238095238096
     ])
-
 
 def J(x):
     x1, x2, x3, x4, x5, x6, x7, x8, x9, x10 = x
@@ -111,16 +103,13 @@ def J(x):
          np.cos(x4 + x5 + x6) * x7, np.sin(x4 + x5 + x6), -x3, x2, x1]
     ])
 
-
 def x0_default():
     return np.array([0.5, 0.5, 1.5, -1.0, -0.5, 1.5, 0.5, -0.5, 1.5, -1.5])
-
 
 def x0_variant():
     x = x0_default()
     x[4] = -0.2
     return x
-
 
 def test_large_system_full_newton():
     x0 = x0_variant()
@@ -128,13 +117,11 @@ def test_large_system_full_newton():
 
     assert norm_inf_vec(F(res["x"])) < 1e-6
 
-
 def test_large_system_hybrid_newton():
     x0 = x0_variant()
     res = newton_system(F, J, x0, mode="hybrid", k=5, m=3)
 
     assert norm_inf_vec(F(res["x"])) < 1e-6
-
 
 def test_large_system_modes_consistency():
     x0 = x0_variant()

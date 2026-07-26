@@ -1,38 +1,27 @@
 import numpy as np
 import pytest
-
 from src.integrals import integrate
 
 
-# Ordinary integrals: smoke tests
-
 def test_midpoint_polynomial():
-    # ∫_0^1 x^2 dx = 1/3
     f = lambda x: x**2
     res = integrate(f, 0, 1, method="midpoint", N0=1, eps=1e-6, exact=1 / 3)
     assert abs(res["result"] - 1 / 3) < 1e-6
 
-
 def test_trapezoid_sin():
-    # ∫_0^π sin(x) dx = 2
     f = np.sin
     res = integrate(f, 0, np.pi, method="trapezoid", N0=4, eps=1e-6, exact=2.0)
     assert abs(res["result"] - 2.0) < 1e-6
 
-
 def test_simpson_known():
-    # ∫_0^2 (3x^2 + 2x + 1) dx = 14
     f = lambda x: 3 * x**2 + 2 * x + 1
     res = integrate(f, 0, 2, method="simpson", N0=2, eps=1e-8, exact=14.0)
     assert abs(res["result"] - 14.0) < 1e-8
 
-
 def test_gauss_known():
-    # ∫_0^1 x^4 dx = 1/5
     f = lambda x: x**4
     res = integrate(f, 0, 1, method="gauss", N0=1, eps=1e-10, exact=1 / 5)
     assert abs(res["result"] - 1 / 5) < 1e-10
-
 
 def test_convergence_and_runge():
     f = np.exp
@@ -43,7 +32,6 @@ def test_convergence_and_runge():
 
     assert res2["N"] >= res1["N"]
     assert abs(res2["result"] - exact) <= abs(res1["result"] - exact)
-
 
 def test_invalid_inputs():
     f = lambda x: x
@@ -61,99 +49,74 @@ def test_invalid_inputs():
         integrate(f, 0, 1, method="trapezoid", eps=0)
 
 
-# J = ∫_a^b f(x) / ((x-a)^alpha (b-x)^beta) dx
-
 def f1(x):
     return 2 * np.cos(2.5 * x) * np.exp(x / 3) + 4 * np.sin(3.5 * x) * np.exp(-3 * x) + x
-
 
 def f2(x):
     return 3 * np.cos(0.5 * x) * np.exp(x / 4) + 5 * np.sin(2.5 * x) * np.exp(-x / 3) + 2 * x
 
-
 def f3(x):
     return 2.5 * np.cos(2 * x) * np.exp(2 * x / 3) + 4 * np.sin(3.5 * x) * np.exp(-3 * x) + 3 * x
-
 
 def f4(x):
     return 3 * np.cos(3.5 * x) * np.exp(4 * x / 3) + 2 * np.sin(3.5 * x) * np.exp(-2 * x / 3) + 4 * x
 
-
 def f5(x):
     return np.cos(1.5 * x) * np.exp(2 * x / 3) + 3 * np.sin(5.5 * x) * np.exp(-2 * x) + 2
-
 
 def f6(x):
     return 4 * np.cos(0.5 * x) * np.exp(-5 * x / 4) + 2 * np.sin(4.5 * x) * np.exp(x / 8) + 2
 
-
 def f7(x):
     return 4.5 * np.cos(7 * x) * np.exp(-2 * x / 3) + 1.4 * np.sin(1.5 * x) * np.exp(-x / 3) + 3
-
 
 def f8(x):
     return 3.7 * np.cos(1.5 * x) * np.exp(-4 * x / 3) + 2.4 * np.sin(4.5 * x) * np.exp(2 * x / 3) + 4
 
-
 def f9(x):
     return 3 * np.cos(1.5 * x) * np.exp(x / 4) + 4 * np.sin(3.5 * x) * np.exp(-3 * x) + 4 * x
-
 
 def f10(x):
     return 1.3 * np.cos(3.5 * x) * np.exp(2 * x / 3) + 6 * np.sin(4.5 * x) * np.exp(-x / 8) + 5 * x
 
-
 def f11(x):
     return 0.5 * np.cos(2 * x) * np.exp(2 * x / 5) + 2.4 * np.sin(1.5 * x) * np.exp(-6 * x) + 6 * x
-
 
 def f12(x):
     return 4 * np.cos(2.5 * x) * np.exp(4 * x / 7) + 2.5 * np.sin(5.5 * x) * np.exp(-3 * x / 5) + 4.3 * x
 
-
 def f13(x):
     return 2 * np.cos(3.5 * x) * np.exp(5 * x / 3) + 3 * np.sin(1.5 * x) * np.exp(-4 * x) + 3
-
 
 def f14(x):
     return 3 * np.cos(2.5 * x) * np.exp(7 * x / 4) + 5 * np.sin(0.5 * x) * np.exp(3 * x / 8) + 4
 
-
 def f15(x):
     return 3.5 * np.cos(0.7 * x) * np.exp(-5 * x / 3) + 2.4 * np.sin(5.5 * x) * np.exp(-3 * x / 4) + 5
-
 
 def f16(x):
     return 2.7 * np.cos(3.5 * x) * np.exp(-7 * x / 3) + 4.4 * np.sin(2.5 * x) * np.exp(5 * x / 3) + 2
 
-
 def f17(x):
     return 6 * np.cos(1.5 * x) * np.exp(5 * x / 3) + 2 * np.sin(0.5 * x) * np.exp(-1.3 * x) + 5.4 * x
-
 
 def f18(x):
     return 4 * np.cos(2.5 * x) * np.exp(5 * x / 4) + 2.5 * np.sin(1.5 * x) * np.exp(-2 * x / 7) + 5 * x
 
-
 def f19(x):
     return 0.5 * np.cos(3 * x) * np.exp(2 * x / 5) + 4 * np.sin(3.5 * x) * np.exp(-3 * x) + 3 * x
-
 
 def f20(x):
     return 1.5 * np.cos(3.7 * x) * np.exp(4 * x / 7) + 3 * np.sin(2.5 * x) * np.exp(3 * x / 4) + 3 * x
 
-
 def f21(x):
     return 3 * np.cos(2.5 * x) * np.exp(4 * x / 3) + 4 * np.sin(5.5 * x) * np.exp(-3.5 * x) + 3
-
 
 def f22(x):
     return 5 * np.cos(0.3 * x) * np.exp(-7 * x / 4) + 7 * np.sin(0.5 * x) * np.exp(2 * x / 3) + 4
 
-
 def f23(x):
     return 2.5 * np.cos(5.7 * x) * np.exp(-4 * x / 3) + 2.4 * np.sin(2.5 * x) * np.exp(-x) + 7
-
 
 def f24(x):
     return 5.7 * np.cos(2.5 * x) * np.exp(-4 * x / 7) + 4.4 * np.sin(4.3 * x) * np.exp(2 * x / 7) + 5
@@ -235,7 +198,6 @@ def test_weighted_reference_integrals(case_id, func, a, b, alpha, beta, exact):
         rtol=1e-8,
         atol=1e-8,
     ), f"Integral #{case_id} failed: got {res['result']}, expected {exact}"
-
 
 def test_weighted_invalid_inputs():
     with pytest.raises(ValueError):

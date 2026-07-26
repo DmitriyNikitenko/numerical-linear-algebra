@@ -18,7 +18,6 @@ def test_rank_basic():
 
     assert rank(A) == 2
 
-
 def test_rank_full_pivot():
     A = np.array([
         [0, 0, 1],
@@ -31,7 +30,6 @@ def test_rank_full_pivot():
 
     assert rank(U1) == rank(U2) == 3
 
-
 def test_consistent_system():
     A = np.array([
         [1, 2],
@@ -41,7 +39,6 @@ def test_consistent_system():
     b = np.array([3, 6], dtype=float)
 
     assert is_consistent(A, b)
-
 
 def test_inconsistent_system():
     A = np.array([
@@ -53,7 +50,6 @@ def test_inconsistent_system():
 
     assert not is_consistent(A, b)
 
-
 def test_is_degenerate():
     A = np.array([
         [1, 2],
@@ -61,7 +57,6 @@ def test_is_degenerate():
     ], dtype=float)
 
     assert is_degenerate(A)
-
 
 def test_non_degenerate():
     A = np.array([
@@ -71,13 +66,11 @@ def test_non_degenerate():
 
     assert not is_degenerate(A)
 
-
 def test_gauss_shape():
     A = np.random.randn(5, 3)
     U = gauss(A)
 
     assert U.shape == A.shape
-
 
 def test_solve_singular():
     A = np.array([
@@ -93,7 +86,6 @@ def test_solve_singular():
     assert is_consistent(A, b)
     assert residual_norm(A, x, b) < 1e-8
 
-
 def test_solve_singular_full_pivot():
     A = np.array([
         [0, 1, 2],
@@ -108,7 +100,6 @@ def test_solve_singular_full_pivot():
     assert is_consistent(A, b)
     assert residual_norm(A, x, b) < 1e-8
 
-
 def test_random_consistent_system():
     np.random.seed(0)
 
@@ -121,7 +112,6 @@ def test_random_consistent_system():
     x = solve_singular(A, b)
 
     assert residual_norm(A, x, b) < 1e-8
-
 
 def test_rank_rectangular():
     A = np.random.randn(4, 6)

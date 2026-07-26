@@ -13,7 +13,6 @@ def test_lu_reconstruction():
     L, U, P, Q = lu_decomposition(A)
     assert norm_inf_matrix(P @ A @ Q - L @ U) < 1e-8
 
-
 def test_lu_solve():
     A = np.array([
         [2.0, 1.0, 1.0],
@@ -25,7 +24,6 @@ def test_lu_solve():
     x = lu_solve(A, b)
 
     assert residual_norm(A, x, b) < 1e-8
-
 
 def test_determinant_and_inverse():
     A = np.array([
@@ -43,7 +41,6 @@ def test_determinant_and_inverse():
 
     assert norm_inf_matrix(A @ A_inv - I) < 1e-8
     assert norm_inf_matrix(A_inv @ A - I) < 1e-8
-
 
 def test_condition_number():
     A = np.array([
