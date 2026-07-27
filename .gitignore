@@ -13,15 +13,12 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
-# IDE (VS Code)
+# IDE
 .vscode/
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Jupyter (если вдруг)
-.ipynb_checkpoints/
 
 # Build / packaging
 build/
