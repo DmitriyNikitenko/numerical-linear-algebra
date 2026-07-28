@@ -1,5 +1,5 @@
 import numpy as np
-from src.ode import solve_ivp_fixed, solve_ivp_adaptive
+from src.numerical_lib.ode import solve_ivp_fixed, solve_ivp_adaptive
 
 
 # Variant parameters

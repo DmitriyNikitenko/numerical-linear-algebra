@@ -1,12 +1,12 @@
 import numpy as np
-from src.linear_system import (
+from src.numerical_lib.linear_system import (
     gauss,
     rank,
     is_consistent,
     is_degenerate,
     solve_singular,
 )
-from src.utils import residual_norm
+from src.numerical_lib.utils import residual_norm
 
 
 def test_rank_basic():

@@ -1,6 +1,6 @@
 import numpy as np
-from src.qr import qr_decomposition, qr_solve
-from src.utils import residual_norm, norm_inf_matrix
+from src.numerical_lib.qr import qr_decomposition, qr_solve
+from src.numerical_lib.utils import residual_norm, norm_inf_matrix
 
 
 def test_qr_decomposition():

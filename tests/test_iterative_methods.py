@@ -1,5 +1,5 @@
 import numpy as np
-from src.iterative_methods import (
+from src.numerical_lib.iterative_methods import (
     jacobi,
     gauss_seidel,
     is_diagonally_dominant,
@@ -7,7 +7,7 @@ from src.iterative_methods import (
     a_posteriori_bound,
     jacobi_iteration_matrix,
 )
-from src.utils import residual_norm, norm_inf_matrix, norm_inf_vec, diagonal_dominant
+from src.numerical_lib.utils import residual_norm, norm_inf_matrix, norm_inf_vec, diagonal_dominant
 
 
 def _jacobi_step(A, b, x):

@@ -1,6 +1,6 @@
 import numpy as np
-from src.lu import lu_decomposition, lu_solve, determinant, inverse, condition
-from src.utils import residual_norm, norm_inf_matrix
+from src.numerical_lib.lu import lu_decomposition, lu_solve, determinant, inverse, condition
+from src.numerical_lib.utils import residual_norm, norm_inf_matrix
 
 
 def test_lu_reconstruction():

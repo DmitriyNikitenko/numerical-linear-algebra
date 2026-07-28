@@ -1,6 +1,6 @@
 import numpy as np
-from src.nonlinear import newton_system
-from src.utils import norm_inf_vec
+from src.numerical_lib.nonlinear import newton_system
+from src.numerical_lib.utils import norm_inf_vec
 
 
 # Small scalar equation

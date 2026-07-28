@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from src.integrals import integrate
+from src.numerical_lib.integrals import integrate
 
 
 def test_midpoint_polynomial():
