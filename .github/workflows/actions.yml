@@ -19,11 +19,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install numpy pytest
 
-      - name: Test LU
-        run: PYTHONPATH=. pytest tests/test_lu.py -v
-
-      - name: Test QR
-        run: PYTHONPATH=. pytest tests/test_qr.py -v
+      - name: Test Integrals
+        run: PYTHONPATH=. pytest tests/test_integrals.py -v
 
       - name: Test Iterative Methods
         run: PYTHONPATH=. pytest tests/test_iterative_methods.py -v
@@ -31,8 +28,24 @@ jobs:
       - name: Test Linear Systems
         run: PYTHONPATH=. pytest tests/test_linear_system.py -v
 
+      - name: Test LU
+        run: PYTHONPATH=. pytest tests/test_lu.py -v
+
       - name: Test nonlinear equations
         run: PYTHONPATH=. pytest tests/test_nonlinear.py -v
 
-      - name: Test Integrals
-        run: PYTHONPATH=. pytest tests/test_integrals.py -v
+      -name: Test Equations of one variable
+        run: PYTHONPATH=. pytest tests/test_methods_eq_one_var.py
+
+      -name: Test ODE
+        run: PYTHONPATH=. pytest tests/test_ode.py
+
+      - name: Test QR
+        run: PYTHONPATH=. pytest tests/test_qr.py -v
+
+
+
+
+
+
+
