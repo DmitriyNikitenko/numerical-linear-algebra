@@ -7,7 +7,6 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -34,18 +33,11 @@ jobs:
       - name: Test nonlinear equations
         run: PYTHONPATH=. pytest tests/test_nonlinear.py -v
 
-      -name: Test Equations of one variable
-        run: PYTHONPATH=. pytest tests/test_methods_eq_one_var.py
+      - name: Test Equations of one variable
+        run: PYTHONPATH=. pytest tests/test_methods_eq_one_var.py -v
 
-      -name: Test ODE
-        run: PYTHONPATH=. pytest tests/test_ode.py
+      - name: Test ODE
+        run: PYTHONPATH=. pytest tests/test_ode.py -v
 
       - name: Test QR
         run: PYTHONPATH=. pytest tests/test_qr.py -v
-
-
-
-
-
-
-
